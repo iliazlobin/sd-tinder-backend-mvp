@@ -7,7 +7,6 @@ via HTTP at API_BASE_URL.
 import os
 import pytest
 import httpx
-import asyncio
 
 
 API_BASE_URL = os.environ.get("API_BASE_URL", "http://localhost:8000")
@@ -25,27 +24,7 @@ def client(base_url):
         yield c
 
 
-@pytest.fixture(autouse=True)
-def clear_database():
-    """Clear all tables before each test to ensure isolation."""
-    import sys
-    sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..', '..', 'src'))
-    from tinder.database import get_engine
-    from sqlalchemy import text
-
-    async def _clear():
-        engine = get_engine()
-        async with engine.begin() as conn:
-            await conn.execute(text('DELETE FROM messages'))
-            await conn.execute(text('DELETE FROM matches'))
-            await conn.execute(text('DELETE FROM swipes'))
-            await conn.execute(text('DELETE FROM users'))
-        await engine.dispose()
-
-    asyncio.run(_clear())
-    yield
-
-
+# --- Profile creation helper ---
 @pytest.fixture
 def fresh_user_id():
     """Generate a unique user_id for each test. In MVP, user_ids are
