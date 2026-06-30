@@ -56,21 +56,11 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Install docker compose
-        run: |
-          sudo mkdir -p /usr/local/lib/docker/cli-plugins
-          sudo curl -sSL "https://github.com/docker/compose/releases/download/v2.27.0/docker-compose-linux-x86_64" -o /usr/local/lib/docker/cli-plugins/docker-compose
-          sudo chmod +x /usr/local/lib/docker/cli-plugins/docker-compose
-          docker compose version
-
-      - uses: actions/setup-python@v5
-        with:
-          python-version: "3.12"
-
       - name: Bring up stack
         env:
           APP_PORT: "8020"
         run: |
+          set -e
           docker compose up --build -d
           for i in $(seq 1 30); do
             STATUS=$(curl -s -o /dev/null -w "%{http_code}" http://localhost:8020/healthz 2>/dev/null || echo "000")
@@ -85,6 +75,10 @@ jobs:
 
       - name: Run migrations
         run: docker compose exec -T app alembic upgrade head
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
 
       - name: Run acceptance tests
         env:
