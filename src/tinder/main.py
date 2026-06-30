@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import asyncio
 import logging
+import sys
 from contextlib import asynccontextmanager
 
 from fastapi import FastAPI
@@ -18,6 +19,9 @@ from tinder.routers import (
     matches_router,
     messages_router,
 )
+
+# Ensure lifespan logs are visible even without uvicorn's log config
+logging.basicConfig(level=logging.INFO, stream=sys.stderr, format="%(levelname)s [%(name)s] %(message)s")
 
 logger = logging.getLogger(__name__)
 
