@@ -45,6 +45,7 @@ jobs:
           DATABASE_URL: postgresql+asyncpg://tinder:tinder@localhost:5432/tinder
         run: |
           set -e
+          trap 'echo "=== e2e failure — dumping app logs ==="; docker compose logs app --tail=100 2>&1 || true' ERR
           source verify/manifest.env
           eval "$TEST_DEPS"
           eval "$UP"
