@@ -48,6 +48,7 @@ jobs:
           source verify/manifest.env
           eval "$TEST_DEPS"
           eval "$UP"
+          eval "$MIGRATE"
           eval "$READY"
           eval "$ACCEPTANCE"
           eval "$DOWN"

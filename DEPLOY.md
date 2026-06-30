@@ -54,7 +54,7 @@ The stack has three services:
 | Service | Image | Port (host) | Healthcheck |
 |---------|-------|-------------|-------------|
 | `app` | Built from `Dockerfile` | `${APP_PORT:-8020}:8000` | `python -c "import urllib.request; ..."` → `/healthz` |
-| `db` | `postgres:16-alpine` | none (internal) | `pg_isready -U tinder -d tinder` |
+| `db` | `postgres:16-alpine` | `5432:5432` | `pg_isready -U tinder -d tinder` |
 | `redis` | `redis:7-alpine` | none (internal) | `redis-cli ping` |
 
 App waits for both `db` and `redis` to be healthy before starting (`depends_on` with `condition: service_healthy`).
