@@ -32,15 +32,18 @@ def fresh_user_id():
     in black-box acceptance tests — the system only cares about uniqueness
     and the 26-char ULID format constraint."""
     import uuid
+
     return str(uuid.uuid4())[:26]
 
 
 # --- Helper assertions ---
 
+
 def assert_json_200(r, expected_status=200):
     """Assert status and return parsed JSON."""
-    assert r.status_code == expected_status, \
-        f"Expected {expected_status}, got {r.status_code}: {r.text}"
+    assert (
+        r.status_code == expected_status
+    ), f"Expected {expected_status}, got {r.status_code}: {r.text}"
     return r.json()
 
 
@@ -49,30 +52,27 @@ def assert_201(r):
 
 
 def assert_422(r):
-    assert r.status_code == 422, \
-        f"Expected 422, got {r.status_code}: {r.text}"
+    assert r.status_code == 422, f"Expected 422, got {r.status_code}: {r.text}"
     return r.json()
 
 
 def assert_404(r):
-    assert r.status_code == 404, \
-        f"Expected 404, got {r.status_code}: {r.text}"
+    assert r.status_code == 404, f"Expected 404, got {r.status_code}: {r.text}"
     return r.json()
 
 
 def assert_403(r):
-    assert r.status_code == 403, \
-        f"Expected 403, got {r.status_code}: {r.text}"
+    assert r.status_code == 403, f"Expected 403, got {r.status_code}: {r.text}"
     return r.json()
 
 
 def assert_409(r):
-    assert r.status_code == 409, \
-        f"Expected 409, got {r.status_code}: {r.text}"
+    assert r.status_code == 409, f"Expected 409, got {r.status_code}: {r.text}"
     return r.json()
 
 
 # --- Profile creation helper ---
+
 
 def create_profile(client, user_id, **overrides):
     """Create a profile and return the parsed response body.

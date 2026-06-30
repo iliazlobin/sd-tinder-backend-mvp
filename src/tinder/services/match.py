@@ -48,7 +48,9 @@ async def list_matches(
         # For matches with last_message_at, filter by it; otherwise by created_at
         stmt = stmt.where(
             or_(
-                and_(Match.last_message_at.isnot(None), Match.last_message_at < cursor_dt),
+                and_(
+                    Match.last_message_at.isnot(None), Match.last_message_at < cursor_dt
+                ),
                 and_(Match.last_message_at.is_(None), Match.created_at < cursor_dt),
             )
         )

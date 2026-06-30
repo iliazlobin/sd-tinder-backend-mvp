@@ -34,9 +34,7 @@ def test_match_list_includes_new_match(client):
     match_id = swipe_resp["match_id"]
 
     # Check Alice's match list
-    body = assert_json_200(
-        client.get("/v1/matches", headers={"X-User-Id": user_a})
-    )
+    body = assert_json_200(client.get("/v1/matches", headers={"X-User-Id": user_a}))
     matches = body["matches"]
     assert len(matches) >= 1, f"Expected at least 1 match, got {len(matches)}"
 
@@ -64,17 +62,13 @@ def test_match_list_other_user_is_correct(client):
     )
 
     # From Alice's perspective, other_user should be Bob
-    body = assert_json_200(
-        client.get("/v1/matches", headers={"X-User-Id": user_a})
-    )
+    body = assert_json_200(client.get("/v1/matches", headers={"X-User-Id": user_a}))
     match = body["matches"][0]
     assert match["other_user"]["id"] == user_b
     assert match["other_user"]["name"] == "Bob"
 
     # From Bob's perspective, other_user should be Alice
-    body_b = assert_json_200(
-        client.get("/v1/matches", headers={"X-User-Id": user_b})
-    )
+    body_b = assert_json_200(client.get("/v1/matches", headers={"X-User-Id": user_b}))
     match_b = body_b["matches"][0]
     assert match_b["other_user"]["id"] == user_a
     assert match_b["other_user"]["name"] == "Alice"
@@ -85,8 +79,12 @@ def test_match_list_pagination(client):
     # Create requester
     requester = "match-paginate-000000000000001"
     create_profile(
-        client, requester,
-        name="Requester", gender="women", lat=40.71, lon=-74.00,
+        client,
+        requester,
+        name="Requester",
+        gender="women",
+        lat=40.71,
+        lon=-74.00,
     )
 
     # Create 3 matches
@@ -94,8 +92,12 @@ def test_match_list_pagination(client):
     for i in range(3):
         other = f"match-paginate-other-0000000{i}"
         create_profile(
-            client, other,
-            name=f"Other{i}", gender="men", lat=40.71, lon=-74.00,
+            client,
+            other,
+            name=f"Other{i}",
+            gender="men",
+            lat=40.71,
+            lon=-74.00,
         )
         client.post(
             "/v1/swipe",
@@ -130,8 +132,9 @@ def test_match_list_pagination(client):
         # No duplicate match_ids across pages
         page1_ids = {m["match_id"] for m in body["matches"]}
         page2_ids = {m["match_id"] for m in body2["matches"]}
-        assert page1_ids.isdisjoint(page2_ids), \
-            f"Duplicate match_ids across pages: {page1_ids & page2_ids}"
+        assert page1_ids.isdisjoint(
+            page2_ids
+        ), f"Duplicate match_ids across pages: {page1_ids & page2_ids}"
 
 
 def test_match_list_has_required_fields(client):
@@ -141,7 +144,12 @@ def test_match_list_has_required_fields(client):
 
     create_profile(client, user_a, name="Alice", gender="women", lat=40.71, lon=-74.00)
     create_profile(
-        client, user_b, name="Bob", gender="men", lat=40.71, lon=-74.00,
+        client,
+        user_b,
+        name="Bob",
+        gender="men",
+        lat=40.71,
+        lon=-74.00,
         photos=["https://example.com/bob.jpg"],
     )
 
@@ -156,9 +164,7 @@ def test_match_list_has_required_fields(client):
         headers={"X-User-Id": user_b},
     )
 
-    body = assert_json_200(
-        client.get("/v1/matches", headers={"X-User-Id": user_a})
-    )
+    body = assert_json_200(client.get("/v1/matches", headers={"X-User-Id": user_a}))
     match = body["matches"][0]
 
     assert "match_id" in match
@@ -172,7 +178,9 @@ def test_match_list_has_required_fields(client):
 
 def test_match_list_empty_for_new_user(client, fresh_user_id):
     """New user with no swipes → empty match list."""
-    create_profile(client, fresh_user_id, name="New", gender="women", lat=40.71, lon=-74.00)
+    create_profile(
+        client, fresh_user_id, name="New", gender="women", lat=40.71, lon=-74.00
+    )
 
     body = assert_json_200(
         client.get("/v1/matches", headers={"X-User-Id": fresh_user_id})

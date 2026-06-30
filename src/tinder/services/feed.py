@@ -43,11 +43,11 @@ async def get_feed(
     # Approximate degrees per km (rough but sufficient for initial filtering)
     km_per_deg_lat = 111.0
     km_per_deg_lon = 111.0 * 0.75  # Adjust for latitude (NYC ~40.7°N)
-    
+
     radius_km = prefs.get("radius_km", 25)
     lat_delta = radius_km / km_per_deg_lat
     lon_delta = radius_km / km_per_deg_lon
-    
+
     min_lat = lat - lat_delta
     max_lat = lat + lat_delta
     min_lon = lon - lon_delta

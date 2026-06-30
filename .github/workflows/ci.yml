@@ -2,13 +2,21 @@ name: CI
 
 on:
   push:
+    branches: [main]
   pull_request:
+    branches: [main]
   schedule:
-    - cron: "0 9 * * *"
+    - cron: "17 13 * * *"
+
+permissions:
+  contents: read
 
 jobs:
   unit:
     runs-on: ubuntu-latest
+    concurrency:
+      group: ci-unit-${{ github.ref }}
+      cancel-in-progress: true
     services:
       postgres:
         image: postgres:16-alpine
@@ -25,29 +33,66 @@ jobs:
           --health-retries 10
     steps:
       - uses: actions/checkout@v4
+
       - uses: actions/setup-python@v5
         with:
           python-version: "3.12"
-      - name: Install deps
-        run: pip install '.[dev]'
-      - name: Unit tests
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -e ".[dev]"
+
+      - name: Run unit tests
         env:
           DATABASE_URL: postgresql+asyncpg://tinder:tinder@localhost:5432/tinder
         run: pytest tests/unit/ -v
 
   e2e:
     runs-on: ubuntu-latest
+    concurrency:
+      group: ci-e2e-${{ github.ref }}
+      cancel-in-progress: true
     steps:
       - uses: actions/checkout@v4
-      - name: Source manifest and run e2e
+
+      - name: Install docker compose
+        run: |
+          sudo mkdir -p /usr/local/lib/docker/cli-plugins
+          sudo curl -sSL "https://github.com/docker/compose/releases/download/v2.27.0/docker-compose-linux-x86_64" -o /usr/local/lib/docker/cli-plugins/docker-compose
+          sudo chmod +x /usr/local/lib/docker/cli-plugins/docker-compose
+          docker compose version
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Bring up stack
         env:
           APP_PORT: "8020"
-          DATABASE_URL: postgresql+asyncpg://tinder:tinder@localhost:5432/tinder
         run: |
-          set -e
-          source verify/manifest.env
-          eval "$TEST_DEPS"
-          eval "$UP"
-          eval "$READY"
-          eval "$ACCEPTANCE"
-          eval "$DOWN"
+          docker compose up --build -d
+          for i in $(seq 1 30); do
+            STATUS=$(curl -s -o /dev/null -w "%{http_code}" http://localhost:8020/healthz 2>/dev/null || echo "000")
+            if [ "$STATUS" = "200" ]; then
+              echo "App healthy (HTTP $STATUS)"
+              break
+            fi
+            echo "Waiting for app... attempt $i/30 (HTTP $STATUS)"
+            sleep 2
+          done
+          curl -sf http://localhost:8020/healthz
+
+      - name: Run migrations
+        run: docker compose exec -T app alembic upgrade head
+
+      - name: Run acceptance tests
+        env:
+          API_BASE_URL: http://localhost:8020
+        run: |
+          python -m pip install httpx pytest
+          pytest verify/acceptance/ -v
+
+      - name: Tear down
+        if: always()
+        run: docker compose down -v

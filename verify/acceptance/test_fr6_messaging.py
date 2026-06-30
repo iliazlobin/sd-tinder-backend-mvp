@@ -147,7 +147,9 @@ def test_non_participant_cannot_send_message(client):
     outsider = "msg-nonpart-c-000000000000001"
     match_id = _create_match(client, user_a, user_b)
 
-    create_profile(client, outsider, name="Outsider", gender="men", lat=40.71, lon=-74.00)
+    create_profile(
+        client, outsider, name="Outsider", gender="men", lat=40.71, lon=-74.00
+    )
 
     r = client.post(
         f"/v1/messages/{match_id}",
@@ -164,7 +166,9 @@ def test_non_participant_cannot_read_messages(client):
     outsider = "msg-readdeny-c-00000000000001"
     match_id = _create_match(client, user_a, user_b)
 
-    create_profile(client, outsider, name="Outsider", gender="men", lat=40.71, lon=-74.00)
+    create_profile(
+        client, outsider, name="Outsider", gender="men", lat=40.71, lon=-74.00
+    )
 
     r = client.get(
         f"/v1/messages/{match_id}",
@@ -218,5 +222,7 @@ def test_message_on_inactive_match_rejected(client):
         json={"text": "Still here?"},
         headers={"X-User-Id": user_a},
     )
-    assert r.status_code in (403, 404), \
-        f"Expected 403 or 404 on inactive match, got {r.status_code}: {r.text}"
+    assert r.status_code in (
+        403,
+        404,
+    ), f"Expected 403 or 404 on inactive match, got {r.status_code}: {r.text}"

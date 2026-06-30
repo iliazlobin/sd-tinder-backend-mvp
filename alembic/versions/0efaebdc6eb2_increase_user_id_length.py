@@ -5,14 +5,15 @@ Revises: 33a7bfe3fff4
 Create Date: 2026-06-30
 
 """
+
 from typing import Sequence, Union
 
 from alembic import op
 import sqlalchemy as sa
 
 # revision identifiers, used by Alembic.
-revision: str = '0efaebdc6eb2'
-down_revision: Union[str, Sequence[str], None] = '33a7bfe3fff4'
+revision: str = "0efaebdc6eb2"
+down_revision: Union[str, Sequence[str], None] = "33a7bfe3fff4"
 branch_labels: Union[str, Sequence[str], None] = None
 depends_on: Union[str, Sequence[str], None] = None
 
@@ -50,12 +51,24 @@ def upgrade() -> None:
     op.create_primary_key("messages_pkey", "messages", ["message_id"])
 
     # Recreate FKs
-    op.create_foreign_key("matches_user_a_fkey", "matches", "users", ["user_a"], ["user_id"])
-    op.create_foreign_key("matches_user_b_fkey", "matches", "users", ["user_b"], ["user_id"])
-    op.create_foreign_key("swipes_swiper_id_fkey", "swipes", "users", ["swiper_id"], ["user_id"])
-    op.create_foreign_key("swipes_swiped_id_fkey", "swipes", "users", ["swiped_id"], ["user_id"])
-    op.create_foreign_key("messages_match_id_fkey", "messages", "matches", ["match_id"], ["match_id"])
-    op.create_foreign_key("messages_sender_id_fkey", "messages", "users", ["sender_id"], ["user_id"])
+    op.create_foreign_key(
+        "matches_user_a_fkey", "matches", "users", ["user_a"], ["user_id"]
+    )
+    op.create_foreign_key(
+        "matches_user_b_fkey", "matches", "users", ["user_b"], ["user_id"]
+    )
+    op.create_foreign_key(
+        "swipes_swiper_id_fkey", "swipes", "users", ["swiper_id"], ["user_id"]
+    )
+    op.create_foreign_key(
+        "swipes_swiped_id_fkey", "swipes", "users", ["swiped_id"], ["user_id"]
+    )
+    op.create_foreign_key(
+        "messages_match_id_fkey", "messages", "matches", ["match_id"], ["match_id"]
+    )
+    op.create_foreign_key(
+        "messages_sender_id_fkey", "messages", "users", ["sender_id"], ["user_id"]
+    )
 
 
 def downgrade() -> None:
@@ -86,9 +99,21 @@ def downgrade() -> None:
     op.create_primary_key("swipes_pkey", "swipes", ["swiper_id", "swiped_id"])
     op.create_primary_key("messages_pkey", "messages", ["message_id"])
 
-    op.create_foreign_key("matches_user_a_fkey", "matches", "users", ["user_a"], ["user_id"])
-    op.create_foreign_key("matches_user_b_fkey", "matches", "users", ["user_b"], ["user_id"])
-    op.create_foreign_key("swipes_swiper_id_fkey", "swipes", "users", ["swiper_id"], ["user_id"])
-    op.create_foreign_key("swipes_swiped_id_fkey", "swipes", "users", ["swiped_id"], ["user_id"])
-    op.create_foreign_key("messages_match_id_fkey", "messages", "matches", ["match_id"], ["match_id"])
-    op.create_foreign_key("messages_sender_id_fkey", "messages", "users", ["sender_id"], ["user_id"])
+    op.create_foreign_key(
+        "matches_user_a_fkey", "matches", "users", ["user_a"], ["user_id"]
+    )
+    op.create_foreign_key(
+        "matches_user_b_fkey", "matches", "users", ["user_b"], ["user_id"]
+    )
+    op.create_foreign_key(
+        "swipes_swiper_id_fkey", "swipes", "users", ["swiper_id"], ["user_id"]
+    )
+    op.create_foreign_key(
+        "swipes_swiped_id_fkey", "swipes", "users", ["swiped_id"], ["user_id"]
+    )
+    op.create_foreign_key(
+        "messages_match_id_fkey", "messages", "matches", ["match_id"], ["match_id"]
+    )
+    op.create_foreign_key(
+        "messages_sender_id_fkey", "messages", "users", ["sender_id"], ["user_id"]
+    )

@@ -75,8 +75,9 @@ def test_unmatch_removes_from_match_list(client):
         client.get("/v1/matches", headers={"X-User-Id": user_a})
     )
     match_ids_after = [m["match_id"] for m in body_after["matches"]]
-    assert match_id not in match_ids_after, \
-        f"Match {match_id} should not appear after unmatch"
+    assert (
+        match_id not in match_ids_after
+    ), f"Match {match_id} should not appear after unmatch"
 
 
 def test_either_participant_can_unmatch(client):
@@ -114,8 +115,10 @@ def test_unmatch_idempotent(client):
         f"/v1/matches/{match_id}",
         headers={"X-User-Id": user_a},
     )
-    assert r.status_code in (200, 404), \
-        f"Expected 200 or 404 on double unmatch, got {r.status_code}: {r.text}"
+    assert r.status_code in (
+        200,
+        404,
+    ), f"Expected 200 or 404 on double unmatch, got {r.status_code}: {r.text}"
 
 
 def test_non_participant_cannot_unmatch(client):
@@ -125,7 +128,9 @@ def test_non_participant_cannot_unmatch(client):
     outsider = "unmatch-deny-c-00000000000001"
     match_id = _create_match(client, user_a, user_b)
 
-    create_profile(client, outsider, name="Outsider", gender="men", lat=40.71, lon=-74.00)
+    create_profile(
+        client, outsider, name="Outsider", gender="men", lat=40.71, lon=-74.00
+    )
 
     r = client.delete(
         f"/v1/matches/{match_id}",
@@ -137,8 +142,12 @@ def test_non_participant_cannot_unmatch(client):
 def test_unmatch_nonexistent_match_returns_404(client):
     """DELETE on non-existent match_id → 404."""
     create_profile(
-        client, "unmatch-404-user-000000000001",
-        name="Loner", gender="women", lat=40.71, lon=-74.00,
+        client,
+        "unmatch-404-user-000000000001",
+        name="Loner",
+        gender="women",
+        lat=40.71,
+        lon=-74.00,
     )
     r = client.delete(
         "/v1/matches/nonexistent-match-id-0000",

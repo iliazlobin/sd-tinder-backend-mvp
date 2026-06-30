@@ -2,13 +2,23 @@ name: Functional
 
 on:
   push:
+    branches: [main]
   pull_request:
+    branches: [main]
   schedule:
-    - cron: "0 9 * * *"
+    - cron: "17 13 * * *"
+
+permissions:
+  contents: read
+
+concurrency:
+  group: functional-${{ github.ref }}
+  cancel-in-progress: true
 
 jobs:
   functional:
     runs-on: ubuntu-latest
+
     services:
       postgres:
         image: postgres:16-alpine
@@ -23,17 +33,22 @@ jobs:
           --health-interval 2s
           --health-timeout 3s
           --health-retries 10
+
     steps:
       - uses: actions/checkout@v4
+
       - uses: actions/setup-python@v5
         with:
           python-version: "3.12"
+
       - name: Install deps
-        run: pip install '.[dev]'
+        run: pip install -e ".[dev]"
+
       - name: Run migrations
         env:
           DATABASE_URL: postgresql+asyncpg://tinder:tinder@localhost:5432/tinder
         run: alembic upgrade head
+
       - name: Functional tests
         env:
           DATABASE_URL: postgresql+asyncpg://tinder:tinder@localhost:5432/tinder

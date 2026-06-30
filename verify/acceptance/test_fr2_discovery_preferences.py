@@ -35,8 +35,9 @@ def test_preferences_optional(client, fresh_user_id):
     body = create_profile(client, fresh_user_id)
     # Preferences may be null, empty dict, or absent
     prefs = body.get("preferences", {})
-    assert prefs is None or isinstance(prefs, dict), \
-        f"preferences should be null or dict, got {type(prefs)}"
+    assert prefs is None or isinstance(
+        prefs, dict
+    ), f"preferences should be null or dict, got {type(prefs)}"
 
 
 def test_radius_clamped_at_1(client, fresh_user_id):
@@ -49,7 +50,12 @@ def test_radius_clamped_at_1(client, fresh_user_id):
             "age": 25,
             "lat": 40.7128,
             "lon": -74.0060,
-            "preferences": {"gender": "women", "age_min": 22, "age_max": 35, "radius_km": 0},
+            "preferences": {
+                "gender": "women",
+                "age_min": 22,
+                "age_max": 35,
+                "radius_km": 0,
+            },
         },
         headers={"X-User-Id": fresh_user_id},
     )
@@ -57,8 +63,9 @@ def test_radius_clamped_at_1(client, fresh_user_id):
     # If system rejects instead, that's also valid (422).
     if r.status_code == 201:
         body = r.json()
-        assert body["preferences"]["radius_km"] == 1, \
-            f"Expected radius_km=1 after clamp, got {body['preferences']['radius_km']}"
+        assert (
+            body["preferences"]["radius_km"] == 1
+        ), f"Expected radius_km=1 after clamp, got {body['preferences']['radius_km']}"
     elif r.status_code == 422:
         pass  # rejection is also acceptable
     else:
@@ -75,14 +82,20 @@ def test_radius_clamped_at_160(client, fresh_user_id):
             "age": 25,
             "lat": 40.7128,
             "lon": -74.0060,
-            "preferences": {"gender": "women", "age_min": 22, "age_max": 35, "radius_km": 500},
+            "preferences": {
+                "gender": "women",
+                "age_min": 22,
+                "age_max": 35,
+                "radius_km": 500,
+            },
         },
         headers={"X-User-Id": fresh_user_id},
     )
     if r.status_code == 201:
         body = r.json()
-        assert body["preferences"]["radius_km"] == 160, \
-            f"Expected radius_km=160 after clamp, got {body['preferences']['radius_km']}"
+        assert (
+            body["preferences"]["radius_km"] == 160
+        ), f"Expected radius_km=160 after clamp, got {body['preferences']['radius_km']}"
     elif r.status_code == 422:
         pass
     else:

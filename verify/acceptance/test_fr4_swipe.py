@@ -176,5 +176,7 @@ def test_swipe_pass_then_like_replaces(client):
         headers={"X-User-Id": user_a},
     )
     # System may return 200 (idempotent = pass result) or 200 (updated decision)
-    assert r2.status_code in (200, 409), \
-        f"Expected 200 or 409, got {r2.status_code}: {r2.text}"
+    assert r2.status_code in (
+        200,
+        409,
+    ), f"Expected 200 or 409, got {r2.status_code}: {r2.text}"

@@ -40,7 +40,13 @@ async def _create_match(client, user_a, user_b):
 async def _create_profile(client, user_id):
     r = await client.post(
         "/v1/profile/me",
-        json={"name": f"User-{user_id[:6]}", "gender": "women", "age": 25, "lat": 40.71, "lon": -74.00},
+        json={
+            "name": f"User-{user_id[:6]}",
+            "gender": "women",
+            "age": 25,
+            "lat": 40.71,
+            "lon": -74.00,
+        },
         headers={"X-User-Id": user_id},
     )
     assert r.status_code == 201
@@ -55,7 +61,13 @@ async def test_profile_upsert_is_idempotent(client):
 
     r2 = await client.post(
         "/v1/profile/me",
-        json={"name": "Alice V2", "gender": "women", "age": 26, "lat": 40.72, "lon": -74.01},
+        json={
+            "name": "Alice V2",
+            "gender": "women",
+            "age": 26,
+            "lat": 40.72,
+            "lon": -74.01,
+        },
         headers={"X-User-Id": user_id},
     )
     assert r2.status_code == 201
@@ -72,11 +84,19 @@ async def test_swipe_twice_idempotent(client):
     await _create_profile(client, user_a)
     await _create_profile(client, user_b)
 
-    r1 = await client.post("/v1/swipe", json={"swiped_id": user_b, "decision": "like"}, headers={"X-User-Id": user_a})
+    r1 = await client.post(
+        "/v1/swipe",
+        json={"swiped_id": user_b, "decision": "like"},
+        headers={"X-User-Id": user_a},
+    )
     assert r1.status_code == 200
     first = r1.json()
 
-    r2 = await client.post("/v1/swipe", json={"swiped_id": user_b, "decision": "like"}, headers={"X-User-Id": user_a})
+    r2 = await client.post(
+        "/v1/swipe",
+        json={"swiped_id": user_b, "decision": "like"},
+        headers={"X-User-Id": user_a},
+    )
     assert r2.status_code == 200
     assert r2.json()["is_match"] == first["is_match"]
 
@@ -88,7 +108,11 @@ async def test_messages_reverse_chronological(client):
     match_id = await _create_match(client, user_a, user_b)
 
     for text in ["First", "Second", "Third"]:
-        r = await client.post(f"/v1/messages/{match_id}", json={"text": text}, headers={"X-User-Id": user_a})
+        r = await client.post(
+            f"/v1/messages/{match_id}",
+            json={"text": text},
+            headers={"X-User-Id": user_a},
+        )
         assert r.status_code == 201
 
     r = await client.get(f"/v1/messages/{match_id}", headers={"X-User-Id": user_a})
@@ -107,17 +131,27 @@ async def test_message_cursor_pagination(client):
     match_id = await _create_match(client, user_a, user_b)
 
     for i in range(5):
-        r = await client.post(f"/v1/messages/{match_id}", json={"text": f"Msg{i}"}, headers={"X-User-Id": user_a})
+        r = await client.post(
+            f"/v1/messages/{match_id}",
+            json={"text": f"Msg{i}"},
+            headers={"X-User-Id": user_a},
+        )
         assert r.status_code == 201
 
-    r1 = await client.get(f"/v1/messages/{match_id}", params={"limit": 3}, headers={"X-User-Id": user_a})
+    r1 = await client.get(
+        f"/v1/messages/{match_id}", params={"limit": 3}, headers={"X-User-Id": user_a}
+    )
     assert r1.status_code == 200
     b1 = r1.json()
     assert len(b1["messages"]) == 3
     p1_ids = {m["message_id"] for m in b1["messages"]}
     assert b1.get("next_cursor")
 
-    r2 = await client.get(f"/v1/messages/{match_id}", params={"before": b1["next_cursor"], "limit": 3}, headers={"X-User-Id": user_a})
+    r2 = await client.get(
+        f"/v1/messages/{match_id}",
+        params={"before": b1["next_cursor"], "limit": 3},
+        headers={"X-User-Id": user_a},
+    )
     assert r2.status_code == 200
     b2 = r2.json()
     assert len(b2["messages"]) == 2
@@ -131,7 +165,9 @@ async def test_match_list_cursor_pagination(client):
     for i in range(5):
         await _create_match(client, main_user, f"match-page-b-{i:0>20d}")
 
-    r = await client.get("/v1/matches", params={"limit": 3}, headers={"X-User-Id": main_user})
+    r = await client.get(
+        "/v1/matches", params={"limit": 3}, headers={"X-User-Id": main_user}
+    )
     assert r.status_code == 200
     body = r.json()
     assert len(body["matches"]) == 3
@@ -146,7 +182,9 @@ async def test_non_participant_cannot_send_message(client):
     match_id = await _create_match(client, user_a, user_b)
     await _create_profile(client, outsider)
 
-    r = await client.post(f"/v1/messages/{match_id}", json={"text": "X"}, headers={"X-User-Id": outsider})
+    r = await client.post(
+        f"/v1/messages/{match_id}", json={"text": "X"}, headers={"X-User-Id": outsider}
+    )
     assert r.status_code == 403
 
 
@@ -178,7 +216,13 @@ async def test_non_participant_cannot_unmatch(client):
 async def test_age_below_18_rejected(client):
     r = await client.post(
         "/v1/profile/me",
-        json={"name": "TooYoung", "gender": "women", "age": 17, "lat": 40.71, "lon": -74.00},
+        json={
+            "name": "TooYoung",
+            "gender": "women",
+            "age": 17,
+            "lat": 40.71,
+            "lon": -74.00,
+        },
         headers={"X-User-Id": "val-age-000000000000000000001"},
     )
     assert r.status_code == 422
@@ -188,8 +232,19 @@ async def test_age_below_18_rejected(client):
 async def test_radius_out_of_range_clamped(client):
     r = await client.post(
         "/v1/profile/me",
-        json={"name": "Wide", "gender": "women", "age": 25, "lat": 40.71, "lon": -74.00,
-              "preferences": {"gender": "everyone", "age_min": 18, "age_max": 99, "radius_km": 200}},
+        json={
+            "name": "Wide",
+            "gender": "women",
+            "age": 25,
+            "lat": 40.71,
+            "lon": -74.00,
+            "preferences": {
+                "gender": "everyone",
+                "age_min": 18,
+                "age_max": 99,
+                "radius_km": 200,
+            },
+        },
         headers={"X-User-Id": "val-radius-00000000000000001"},
     )
     assert r.status_code == 201
@@ -200,8 +255,19 @@ async def test_radius_out_of_range_clamped(client):
 async def test_radius_below_1_clamped(client):
     r = await client.post(
         "/v1/profile/me",
-        json={"name": "Narrow", "gender": "women", "age": 25, "lat": 40.71, "lon": -74.00,
-              "preferences": {"gender": "everyone", "age_min": 18, "age_max": 99, "radius_km": 0}},
+        json={
+            "name": "Narrow",
+            "gender": "women",
+            "age": 25,
+            "lat": 40.71,
+            "lon": -74.00,
+            "preferences": {
+                "gender": "everyone",
+                "age_min": 18,
+                "age_max": 99,
+                "radius_km": 0,
+            },
+        },
         headers={"X-User-Id": "val-radius-lo-00000000000001"},
     )
     assert r.status_code == 201
@@ -214,7 +280,11 @@ async def test_duplicate_swipe_on_matched_returns_409(client):
     user_b = "val-dup-b-000000000000000000001"
     await _create_match(client, user_a, user_b)
 
-    r = await client.post("/v1/swipe", json={"swiped_id": user_b, "decision": "like"}, headers={"X-User-Id": user_a})
+    r = await client.post(
+        "/v1/swipe",
+        json={"swiped_id": user_b, "decision": "like"},
+        headers={"X-User-Id": user_a},
+    )
     assert r.status_code == 409
     assert "Already matched" in r.json()["detail"]
 
@@ -224,7 +294,11 @@ async def test_self_swipe_rejected(client):
     user_id = "val-self-000000000000000000001"
     await _create_profile(client, user_id)
 
-    r = await client.post("/v1/swipe", json={"swiped_id": user_id, "decision": "like"}, headers={"X-User-Id": user_id})
+    r = await client.post(
+        "/v1/swipe",
+        json={"swiped_id": user_id, "decision": "like"},
+        headers={"X-User-Id": user_id},
+    )
     assert r.status_code == 422
 
 
@@ -252,11 +326,19 @@ async def test_match_creation_links_swipe_and_match(client):
     await _create_profile(client, user_a)
     await _create_profile(client, user_b)
 
-    r1 = await client.post("/v1/swipe", json={"swiped_id": user_b, "decision": "like"}, headers={"X-User-Id": user_a})
+    r1 = await client.post(
+        "/v1/swipe",
+        json={"swiped_id": user_b, "decision": "like"},
+        headers={"X-User-Id": user_a},
+    )
     assert r1.status_code == 200
     assert r1.json()["is_match"] is False
 
-    r2 = await client.post("/v1/swipe", json={"swiped_id": user_a, "decision": "like"}, headers={"X-User-Id": user_b})
+    r2 = await client.post(
+        "/v1/swipe",
+        json={"swiped_id": user_a, "decision": "like"},
+        headers={"X-User-Id": user_b},
+    )
     assert r2.status_code == 200
     assert r2.json()["is_match"] is True
     match_id = r2.json()["match_id"]

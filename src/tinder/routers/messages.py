@@ -12,7 +12,9 @@ from tinder.services.message import list_messages, send_message
 router = APIRouter(prefix="/v1/messages", tags=["messages"])
 
 
-@router.post("/{match_id}", response_model=MessageResponse, status_code=status.HTTP_201_CREATED)
+@router.post(
+    "/{match_id}", response_model=MessageResponse, status_code=status.HTTP_201_CREATED
+)
 async def send_msg(
     match_id: str,
     payload: MessageSend,

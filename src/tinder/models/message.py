@@ -14,8 +14,12 @@ class Message(Base):
     __tablename__ = "messages"
 
     message_id: Mapped[str] = mapped_column(String(64), primary_key=True)
-    match_id: Mapped[str] = mapped_column(String(128), ForeignKey("matches.match_id"), nullable=False)
-    sender_id: Mapped[str] = mapped_column(String(64), ForeignKey("users.user_id"), nullable=False)
+    match_id: Mapped[str] = mapped_column(
+        String(128), ForeignKey("matches.match_id"), nullable=False
+    )
+    sender_id: Mapped[str] = mapped_column(
+        String(64), ForeignKey("users.user_id"), nullable=False
+    )
     text: Mapped[str] = mapped_column(Text, nullable=False)
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True),
