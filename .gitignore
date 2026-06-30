@@ -1,19 +1,26 @@
+# --- Python ---
 __pycache__/
 *.py[cod]
 *.egg-info/
+.eggs/
+build/
+dist/
+
+# --- Virtualenvs (recreated on demand; never commit) ---
 .venv/
-.venv*/
-venv/
-env/
 verify/.venv/
+
+# --- Env / secrets (commit .env.example only) ---
 .env
+
+# --- Tool caches ---
 .pytest_cache/
 .ruff_cache/
 .mypy_cache/
-build/
-dist/
+
+# --- Runtime artifacts / local state ---
 *.log
 *.rdb
-dump.rdb
+file::memory:
 verify/logs/
 verify/state/

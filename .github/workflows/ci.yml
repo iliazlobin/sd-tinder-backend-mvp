@@ -1,0 +1,53 @@
+name: CI
+
+on:
+  push:
+  pull_request:
+  schedule:
+    - cron: "0 9 * * *"
+
+jobs:
+  unit:
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_USER: tinder
+          POSTGRES_PASSWORD: tinder
+          POSTGRES_DB: tinder
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 2s
+          --health-timeout 3s
+          --health-retries 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Install deps
+        run: pip install '.[dev]'
+      - name: Unit tests
+        env:
+          DATABASE_URL: postgresql+asyncpg://tinder:tinder@localhost:5432/tinder
+        run: pytest tests/unit/ -v
+
+  e2e:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Source manifest and run e2e
+        env:
+          APP_PORT: "8020"
+          DATABASE_URL: postgresql+asyncpg://tinder:tinder@localhost:5432/tinder
+        run: |
+          set -e
+          source verify/manifest.env
+          eval "$TEST_DEPS"
+          eval "$UP"
+          eval "$READY"
+          eval "$ACCEPTANCE"
+          eval "$DOWN"

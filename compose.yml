@@ -1,0 +1,53 @@
+# Usage:
+#   cp .env.example .env          # edit APP_PORT if needed
+#   docker compose up -d          # start
+#   docker compose run --rm app alembic upgrade head   # first-run migration
+#   curl localhost:${APP_PORT:-8020}/healthz           # verify
+#   docker compose down           # teardown
+
+services:
+  db:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: tinder
+      POSTGRES_PASSWORD: tinder
+      POSTGRES_DB: tinder
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U tinder -d tinder"]
+      interval: 3s
+      timeout: 3s
+      retries: 10
+
+  redis:
+    image: redis:7-alpine
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 3s
+      timeout: 3s
+      retries: 10
+
+  app:
+    build: .
+    ports:
+      - "${APP_PORT:-8020}:8000"
+    environment:
+      DATABASE_URL: postgresql+asyncpg://tinder:tinder@db:5432/tinder
+      REDIS_URL: redis://redis:6379/0
+      HOST: "0.0.0.0"
+      APP_PORT: "8000"
+      LOG_LEVEL: info
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8000/healthz')"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+volumes:
+  pgdata:
