@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+import asyncio
+import logging
 from contextlib import asynccontextmanager
 
 from fastapi import FastAPI
@@ -17,14 +19,27 @@ from tinder.routers import (
     messages_router,
 )
 
+logger = logging.getLogger(__name__)
+
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    """Startup: verify DB connection. Shutdown: dispose engine."""
+    """Startup: verify DB connection with timeout. Shutdown: dispose engine."""
     engine = get_engine()
-    async with engine.connect() as conn:
-        await conn.execute(text("SELECT 1"))
+    logger.info("Lifespan startup: verifying database connectivity (timeout 10s) ...")
+    try:
+        async with asyncio.timeout(10):
+            async with engine.connect() as conn:
+                await conn.execute(text("SELECT 1"))
+        logger.info("Lifespan startup: database connectivity OK")
+    except asyncio.TimeoutError:
+        logger.error("Lifespan startup: database connection timed out after 10s")
+        raise
+    except Exception:
+        logger.exception("Lifespan startup: database connection failed")
+        raise
     yield
+    logger.info("Lifespan shutdown: disposing engine")
     await engine.dispose()
 
 

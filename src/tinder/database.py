@@ -18,7 +18,9 @@ def get_engine():
     global _engine
     if _engine is None:
         _engine = create_async_engine(
-            settings.database_url, echo=(settings.log_level == "debug")
+            settings.database_url, echo=(settings.log_level == "debug"),
+            connect_args={"timeout": 10},
+            pool_pre_ping=True,
         )
     return _engine
 
